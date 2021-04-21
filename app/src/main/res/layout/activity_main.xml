@@ -15,4 +15,41 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/car_fav"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:src="@drawable/park_car"
+        app:backgroundTint="@color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/users_location_fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_users_location"
+        android:layout_marginEnd="8dp"
+        app:fabSize="mini"
+        app:backgroundTint="@color/white"
+        app:layout_constraintBottom_toBottomOf="@id/car_fav"
+        app:layout_constraintEnd_toStartOf="@+id/car_fav"
+        app:layout_constraintTop_toTopOf="@id/car_fav"
+        />
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/directions_fab"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_directions"
+        android:layout_marginStart="8dp"
+        app:fabSize="mini"
+        app:backgroundTint="@color/white"
+        app:layout_constraintBottom_toBottomOf="@id/car_fav"
+        app:layout_constraintStart_toEndOf="@+id/car_fav"
+        app:layout_constraintTop_toTopOf="@id/car_fav"
+        />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,34 +1,83 @@
 package com.example.parkly
 
+import android.annotation.SuppressLint
 import android.os.Bundle
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.parkly.databinding.ActivityMainBinding
+import com.mapbox.android.core.permissions.PermissionsListener
+import com.mapbox.android.core.permissions.PermissionsManager
 import com.mapbox.mapboxsdk.Mapbox
+import com.mapbox.mapboxsdk.location.LocationComponentActivationOptions
+import com.mapbox.mapboxsdk.location.LocationComponentOptions
+import com.mapbox.mapboxsdk.location.modes.CameraMode
+import com.mapbox.mapboxsdk.location.modes.RenderMode
 import com.mapbox.mapboxsdk.maps.MapView
+import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.maps.Style
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(),PermissionsListener {
     companion object{
-        const val MAPBOX_KEY =
-        "pk.eyJ1IjoicG1hdGFyMjhjb2RlIiwiYSI6ImNrbnA0cGlnczAyN3EydnMyaT" +
-        "BwamFsanIifQ.UY2ZY2_ZI5JZDTuBUZIo_g"
+        const val MAPBOX_KEY = "@strings/map_box_key"// "pk.eyJ1IjoicG1hdGFyMjhjb2RlIiwiYSI6ImNrbnA0cGlnczAyN3EydnMyaTBwamFsanIifQ.UY2ZY2_ZI5JZDTuBUZIo_g"
     }
-    private var mapView:MapView?=null
+    private var mapView:MapView ? =null
+    private var map: MapboxMap ? =null
+    private var permissionsManager:PermissionsManager ? = null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Mapbox.getInstance(this, MAPBOX_KEY)
         val binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-       mapView = binding.mapView.apply {
-           onCreate(savedInstanceState)
-           getMapAsync{ mapboxMap ->
-               mapboxMap.setStyle(Style.MAPBOX_STREETS) { style ->
-                   //do it later
-               }
-           }
-       }
+        mapView = binding.mapView.apply {
+            onCreate(savedInstanceState)
+            getMapAsync{ mapboxMap ->
+                map = mapboxMap
+                mapboxMap.setStyle(Style.MAPBOX_STREETS) { style ->
+                    //do it later
+                }
+            }
+        }
+
+        binding.usersLocationFab.setOnClickListener {
+            map?.getStyle { enableUserLocation(it) }
+        }
     }
+
+    @SuppressLint("MissingPermission")
+    private fun enableUserLocation(style:Style) {
+        if (PermissionsManager.areLocationPermissionsGranted(this)) {
+            var locationComponentOptions = LocationComponentOptions.builder(this)
+                    .pulseEnabled(true)
+                    .build()
+            var locationComponentActivationOptions = LocationComponentActivationOptions.builder(this,style)
+                    .locationComponentOptions(locationComponentOptions)
+                    .build()
+            map?.locationComponent?.apply {
+                activateLocationComponent(locationComponentActivationOptions)
+                isLocationComponentEnabled = true
+                setCameraMode(CameraMode.TRACKING,2000L,12.0,null,null,null)
+                RenderMode.COMPASS
+            }
+        } else {
+            permissionsManager = PermissionsManager(this)
+            permissionsManager?.requestLocationPermissions(this)
+        }
+    }
+
+    override fun onExplanationNeeded(permissionsToExplain: MutableList<String>?) {
+        AlertDialog.Builder(this)
+                .setMessage(R.string.location_permission_explanation)
+                .setPositiveButton(android.R.string.ok,null)
+                .setNegativeButton(android.R.string.cancel,null)
+    }
+
+    override fun onPermissionResult(granted: Boolean) {
+        if(granted){
+            map?.getStyle { enableUserLocation(it) }
+        }
+    }
+
     override fun onStart() {
         super.onStart()
         mapView?.onStart()
@@ -63,5 +112,4 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
         mapView?.onDestroy()
     }
-
 }
