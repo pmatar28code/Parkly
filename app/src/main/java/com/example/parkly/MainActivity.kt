@@ -18,7 +18,7 @@ import com.mapbox.mapboxsdk.maps.Style
 
 class MainActivity : AppCompatActivity(),PermissionsListener {
     companion object{
-        const val MAPBOX_KEY = "@strings/map_box_key"// "pk.eyJ1IjoicG1hdGFyMjhjb2RlIiwiYSI6ImNrbnA0cGlnczAyN3EydnMyaTBwamFsanIifQ.UY2ZY2_ZI5JZDTuBUZIo_g"
+        const val MAPBOX_KEY = "pk.eyJ1IjoicG1hdGFyMjhjb2RlIiwiYSI6ImNrbnJ4anpzYTBuMzkyb3Bob3lwNjI3bTcifQ.1vv5YfZsK6KtKLd_cG7CQw"
     }
     private var mapView:MapView ? =null
     private var map: MapboxMap ? =null

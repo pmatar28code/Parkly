@@ -1,5 +1,5 @@
 <resources>
     <string name="app_name">Parkly</string>
-    <string name="map_box_key">pk.eyJ1IjoicG1hdGFyMjhjb2RlIiwiYSI6ImNrbnJ2N3N0NjBjZGMycHJvYXE3MHkzN2sifQ.nK8MgjgOYmZNd6XdGusbbQ</string>
+    <string name="map_box_key">pk.eyJ1IjoicG1hdGFyMjhjb2RlIiwiYSI6ImNrbnJ4anpzYTBuMzkyb3Bob3lwNjI3bTcifQ.1vv5YfZsK6KtKLd_cG7CQw</string>
     <string name="location_permission_explanation">We need to know your current location to be able to give you directions</string>
 </resources>
