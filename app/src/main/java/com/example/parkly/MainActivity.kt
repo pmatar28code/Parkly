@@ -1,13 +1,17 @@
 package com.example.parkly
 
 import android.annotation.SuppressLint
+import android.location.Location
 import android.os.Bundle
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.graphics.drawable.toBitmap
 import com.example.parkly.databinding.ActivityMainBinding
 import com.mapbox.android.core.permissions.PermissionsListener
 import com.mapbox.android.core.permissions.PermissionsManager
+import com.mapbox.geojson.Point
 import com.mapbox.mapboxsdk.Mapbox
+import com.mapbox.mapboxsdk.geometry.LatLng
 import com.mapbox.mapboxsdk.location.LocationComponentActivationOptions
 import com.mapbox.mapboxsdk.location.LocationComponentOptions
 import com.mapbox.mapboxsdk.location.modes.CameraMode
@@ -15,14 +19,23 @@ import com.mapbox.mapboxsdk.location.modes.RenderMode
 import com.mapbox.mapboxsdk.maps.MapView
 import com.mapbox.mapboxsdk.maps.MapboxMap
 import com.mapbox.mapboxsdk.maps.Style
+import com.mapbox.mapboxsdk.style.layers.PropertyFactory
+import com.mapbox.mapboxsdk.style.layers.SymbolLayer
+import com.mapbox.mapboxsdk.style.sources.GeoJsonSource
+import com.mapbox.mapboxsdk.style.sources.Source
 
 class MainActivity : AppCompatActivity(),PermissionsListener {
     companion object{
-        const val MAPBOX_KEY = "pk.eyJ1IjoicG1hdGFyMjhjb2RlIiwiYSI6ImNrbnJ4anpzYTBuMzkyb3Bob3lwNjI3bTcifQ.1vv5YfZsK6KtKLd_cG7CQw"
+       private const val MAPBOX_KEY = "pk.eyJ1IjoicG1hdGFyMjhjb2RlIiwiYSI6ImNrbnJ4anpzYTBuMzkyb3Bob3lwNjI3bTcifQ.1vv5YfZsK6KtKLd_cG7CQw"
+       private const val PIN_IMAGE = "PIN_IMAGE"
+       private const val CAR_LOCATION_SOURCE = "CAR_LOCATION_SOURCE"
+       private const val CAR_LOCATION_SYMBOL = "CAR_LOCATION_SYMBOL"
     }
     private var mapView:MapView ? =null
     private var map: MapboxMap ? =null
-    private var permissionsManager:PermissionsManager ? = null
+    private var permissionsManager : PermissionsManager ? = null
+    private var parkedCarLocation : Point? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Mapbox.getInstance(this, MAPBOX_KEY)
@@ -34,13 +47,33 @@ class MainActivity : AppCompatActivity(),PermissionsListener {
             getMapAsync{ mapboxMap ->
                 map = mapboxMap
                 mapboxMap.setStyle(Style.MAPBOX_STREETS) { style ->
-                    //do it later
+                    val pinImage = resources.getDrawable(R.drawable.ic_pin, null)
+                    style.addImage(PIN_IMAGE, pinImage)
+                }
+
+                map?.addOnMapLongClickListener { latLng ->
+                    val point = Point.fromLngLat(latLng.longitude, latLng.latitude)
+                    map?.getStyle {
+                        var image = addParkedCar(it, point)
+                        binding.carFav.setImageResource(image)
+                    }
+                    true
                 }
             }
         }
 
         binding.usersLocationFab.setOnClickListener {
             map?.getStyle { enableUserLocation(it) }
+        }
+
+        binding.carFav.setOnClickListener {
+            map?.getStyle {
+                val lastKownLocation = map?.locationComponent?.lastKnownLocation ?: return@getStyle
+                val point =
+                    Point.fromLngLat(lastKownLocation.longitude, lastKownLocation.latitude)
+                var image = addParkedCar(it,point)
+                binding.carFav.setImageResource(image)
+            }
         }
     }
 
@@ -70,6 +103,31 @@ class MainActivity : AppCompatActivity(),PermissionsListener {
                 .setMessage(R.string.location_permission_explanation)
                 .setPositiveButton(android.R.string.ok,null)
                 .setNegativeButton(android.R.string.cancel,null)
+    }
+
+    fun addParkedCar(style:Style, latLng: Point):Int{
+        enableUserLocation(style)
+        return if(parkedCarLocation == null) {
+            parkedCarLocation = latLng
+            val geoJsonStyle = GeoJsonSource(CAR_LOCATION_SOURCE, parkedCarLocation)
+            val symbolLayer = SymbolLayer(CAR_LOCATION_SYMBOL, CAR_LOCATION_SOURCE).apply {
+                withProperties(PropertyFactory.iconImage(PIN_IMAGE))
+            }
+            style.apply {
+
+                addSource(geoJsonStyle)
+                addLayer(symbolLayer)
+            }
+            R.drawable.found_car
+        }else{
+            style.apply {
+                removeLayer(CAR_LOCATION_SYMBOL)
+                removeSource(CAR_LOCATION_SOURCE)
+            }
+            parkedCarLocation = null
+            R.drawable.park_car
+        }
+
     }
 
     override fun onPermissionResult(granted: Boolean) {
